@@ -1,0 +1,77 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables (contains API keys and credentials)
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project-specific
+llama.cpp/
+whisper.cpp/
+generated/
+
+# Media files and downloads
+*.mp3
+*.mp4
+*.mp4.part
+*.mp4.part-Frag*.part
+*.mp4.ytdl
+*.webm
+*.wav
+
+# YouTube download artifacts
+yt_*.json
+yt_*.txt
+caption_url.txt
+captions.json
+
+# Backup files
+*.backup
+*.backup_duplicate_fix
+*.bak
+*.bak2
+*.bak3
+*.bak4
+*.tmp
+server.mjs.bak*
+server.mjs.backup*
+
+# Test files
+test_*.mjs
+test-*.html
+
+# Archives
+insitek_context.zip
+
+# Server directory (if temporary)
+server/
+
+# Extension development
+src/v2/extensions/
+
+# Documentation drafts (keep committed docs, ignore investigation notes)
+*_INVESTIGATION.md
+*_ISSUE.md

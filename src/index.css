@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Required for full-height layout */
+html, body, #root {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  background-color: white !important;
+}
+
+/* Force sidebar to full height */
+.hidden.lg\:fixed.lg\:inset-y-0.lg\:z-50.lg\:flex.lg\:w-72.lg\:flex-col {
+  height: 100vh !important;
+}
+
+/* Also target the inner div */
+.flex.grow.flex-col.gap-y-5.overflow-y-auto.bg-indigo-600 {
+  min-height: 100vh !important;
+}
+
+/* Complete Tailwind UI compatibility layer */
+.h-full { height: 100% !important; }
+.size-5 { width: 1.25rem !important; height: 1.25rem !important; }
+.size-6 { width: 1.5rem !important; height: 1.5rem !important; }
+.size-8 { width: 2rem !important; height: 2rem !important; }
+.font-semibold { font-weight: 500 !important; }
+.font-medium { font-weight: 500 !important; }
+.text-sm\/6 { font-size: 0.875rem !important; line-height: 1.5rem !important; }
+.text-xs\/6 { font-size: 0.75rem !important; line-height: 1.5rem !important; }
+.text-\[0\.625rem\] { font-size: 0.625rem !important; }
+.rounded-lg { border-radius: 0.5rem !important; }
+
+/* Tabs component utilities */
+.fill-gray-500 { fill: #6b7280 !important; }
+.border-b { border-bottom-width: 1px !important; }
+.border-b-2 { border-bottom-width: 2px !important; }
+.border-gray-200 { border-color: #e5e7eb !important; }
+.border-indigo-500 { border-color: #6366f1 !important; }
+.border-transparent { border-color: transparent !important; }
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-gray-500 { color: #6b7280 !important; }
+.text-gray-700 { color: #374151 !important; }
+.text-gray-900 { color: #111827 !important; }
+.outline-indigo-600 { outline-color: #4f46e5 !important; }
+.outline-gray-300 { outline-color: #d1d5db !important; }
+
+/* Hover states for tabs */
+.hover\:border-gray-300:hover { border-color: #d1d5db !important; }
+.hover\:text-gray-700:hover { color: #374151 !important; }
+
+/* Ensure Inter font loads properly */
+* {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+
+/* Add these transform classes for sidebar animation */
+.transition-transform { transition: transform 0.3s ease !important; }
+.-translate-x-full { transform: translateX(-100%) !important; }
+.translate-x-0 { transform: translateX(0) !important; }

@@ -1,0 +1,226 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline'
+import {
+  ImportIcon,
+  TranscriptsIcon,
+  ChatIcon,
+  InsightsIcon,
+  ImportIconInactive,
+  TranscriptsIconInactive,
+  ChatIconInactive,
+  InsightsIconInactive,
+} from './CustomIcons'
+
+/* ─── Tab presets for each page ─── */
+const pageTabs = {
+  Import: ['Youtube video', 'Youtube channel', 'RSS podcast'],
+  Transcripts: ['Transcripts', 'Transcript viewer'],
+  Chat: ['Chat', 'Summary', 'Prompt Deck', 'Source context'],
+  Insights: ['Insight editor', 'Insight list', 'Insight Viewer'],
+}
+
+/* ─── Sidebar links (icons only) ─── */
+const navigation = [
+  {
+    name: 'Import',
+    icon: ImportIcon,
+    iconInactive: ImportIconInactive,
+  },
+  {
+    name: 'Transcripts',
+    icon: TranscriptsIcon,
+    iconInactive: TranscriptsIconInactive,
+  },
+  { name: 'Chat', icon: ChatIcon, iconInactive: ChatIconInactive },
+  {
+    name: 'Insights',
+    icon: InsightsIcon,
+    iconInactive: InsightsIconInactive,
+  },
+]
+
+const teams = [
+  { id: 1, name: 'Heroicons', href: '#', initial: 'H' },
+  { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T' },
+  { id: 3, name: 'Workcation', href: '#', initial: 'W' },
+]
+
+function cn(...c) {
+  return c.filter(Boolean).join(' ')
+}
+
+export default function Layout() {
+  const [collapsed, setCollapsed] = useState(false)
+  const [activePage, setActivePage] = useState('Import')
+
+  /* build current tab list for the page */
+  const tabs = pageTabs[activePage].map((label, i) => ({
+    name: label,
+    href: '#',
+    current: i === 0,
+  }))
+
+  return (
+    <div className="flex">
+      {/* ───── SIDEBAR ───── */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 z-50 flex flex-col bg-indigo-600 transition-all duration-300',
+          collapsed ? 'w-16' : 'w-72'
+        )}
+      >
+        <div
+          className={cn(
+            'flex grow flex-col overflow-y-auto transition-all duration-300',
+            collapsed ? 'gap-y-4 px-1' : 'gap-y-5 px-6'
+          )}
+        >
+          {/* logo + collapse button */}
+          <div className="relative flex h-16 shrink-0 items-center">
+            {!collapsed && (
+              <img
+                src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=white"
+                alt="Your Company"
+                className="h-8 w-auto"
+              />
+            )}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="absolute right-0 rounded p-1 text-indigo-200 hover:bg-indigo-700 hover:text-white"
+            >
+              {collapsed ? (
+                <ChevronRightIcon className="size-5" />
+              ) : (
+                <ChevronLeftIcon className="size-5" />
+              )}
+            </button>
+          </div>
+
+          {/* nav links */}
+          <nav className="flex flex-1 flex-col">
+            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul role="list" className="-mx-2 space-y-1">
+                  {navigation.map((item) => {
+                    const active = item.name === activePage
+                    const Icon = active ? item.icon : item.iconInactive
+                    return (
+                      <li key={item.name}>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setActivePage(item.name)
+                          }}
+                          className={cn(
+                            active
+                              ? 'bg-indigo-700 text-white'
+                              : 'text-indigo-200 hover:bg-indigo-700 hover:text-white',
+                            'group flex rounded-md p-2 text-sm/6 font-semibold',
+                            collapsed ? 'justify-center' : 'gap-x-3'
+                          )}
+                        >
+                          <Icon className="size-6 shrink-0" />
+                          <span className={collapsed ? 'sr-only' : ''}>
+                            {item.name}
+                          </span>
+                        </a>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </li>
+
+              {/* teams */}
+              <li>
+                {!collapsed && (
+                  <div className="text-xs/6 font-semibold text-indigo-200">
+                    Your research
+                  </div>
+                )}
+                <ul role="list" className="-mx-2 mt-2 space-y-1">
+                  {teams.map((t) => (
+                    <li key={t.id}>
+                      <a
+                        href={t.href}
+                        className={cn(
+                          'group flex rounded-md p-2 text-sm/6 font-semibold text-indigo-200 hover:bg-indigo-700 hover:text-white',
+                          collapsed ? 'justify-center' : 'gap-x-3'
+                        )}
+                      >
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-lg border border-indigo-400 bg-indigo-500 text-[0.625rem] font-medium text-white">
+                          {t.initial}
+                        </span>
+                        <span className={collapsed ? 'sr-only' : 'truncate'}>
+                          {t.name}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+
+              {/* profile (hidden when collapsed) */}
+              {!collapsed && (
+                <li className="-mx-6 mt-auto">
+                  <a
+                    href="#"
+                    className="flex items-center gap-x-4 px-6 py-3 text-sm/6 font-semibold text-white hover:bg-indigo-700"
+                  >
+                    <img
+                      alt=""
+                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&q=80&w=256&h=256"
+                      className="size-8 rounded-full bg-indigo-700"
+                    />
+                    <span>Tom Cook</span>
+                  </a>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </div>
+      </aside>
+
+      {/* ───── MAIN ───── */}
+      <main
+        className={cn(
+          'flex-1 py-10 transition-[padding-left] duration-300',
+          collapsed ? 'pl-16' : 'pl-72'
+        )}
+      >
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="border-b border-gray-200 pb-5 sm:pb-0">
+            <h3 className="text-base font-semibold text-gray-900">
+              {activePage}
+            </h3>
+
+            {/* dynamic tab row */}
+            <div className="mt-3 sm:mt-4">
+              <nav className="-mb-px flex space-x-8 overflow-x-auto">
+                {tabs.map((tab) => (
+                  <a
+                    key={tab.name}
+                    href={tab.href}
+                    className={cn(
+                      tab.current
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+                      'whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium'
+                    )}
+                  >
+                    {tab.name}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
