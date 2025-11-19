@@ -1,0 +1,216 @@
+// Inkadu - Minimal Agentic Document Generation Schema
+// Contains ONLY the tables needed for the agentic system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ─────────────────────────────
+   Enums
+   ───────────────────────────── */
+
+enum TranscriptSource {
+  YOUTUBE
+  PODCAST
+  IMAGE
+}
+
+enum AgentStatus {
+  INITIALIZING   // Setting up agent and loading transcripts
+  READING        // Agent reading transcripts
+  PLANNING       // Agent planning document structure
+  WRITING        // Agent writing sections
+  POLISHING      // Agent refining content
+  COMPLETE       // Generation complete
+  FAILED         // Error occurred
+}
+
+enum NoteImportance {
+  CRITICAL  // Must include in document
+  HIGH      // Should include if possible
+  MEDIUM    // Good to have
+  LOW       // Optional, filler content
+}
+
+/* ─────────────────────────────
+   Transcript Storage
+   ───────────────────────────── */
+
+model Transcript {
+  id              String   @id @default(uuid())
+  youtubeId       String?  @unique
+  title           String
+  channel         String
+  channelId       String?
+  channelAvatarUrl String?
+  text            String   @db.Text
+  segments        Json?    // Array of {start, end, text} objects with timestamps
+  description     String?
+  summary         String?  @db.Text
+  publishDate     DateTime?
+  importedAt      DateTime @default(now())
+  source          TranscriptSource @default(YOUTUBE)
+  sourceUrl       String?
+  imageFilename   String?
+  createdAt       DateTime @default(now())
+
+  // Relations (agent-only)
+  agentDocuments  AgentDocument[]
+  agentNotes      AgentNote[]
+  chunks          TranscriptChunk[]
+  metadata        TranscriptMetadata?
+}
+
+/* ─────────────────────────────
+   Transcript Chunking for Scalability
+   Handles 50+ transcripts without context limits
+   ───────────────────────────── */
+
+model TranscriptChunk {
+  id              String    @id @default(uuid())
+  transcriptId    String
+  chunkIndex      Int       // Sequential index: 0, 1, 2...
+  startTime       String?   // "00:15:30" (if timestamp available)
+  endTime         String?   // "00:25:00"
+  content         String    @db.Text
+  wordCount       Int
+  summary         String?   @db.Text  // AI-generated summary
+  keywords        String[]  // Extracted keywords for search
+  createdAt       DateTime  @default(now())
+
+  transcript      Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+
+  @@unique([transcriptId, chunkIndex])
+  @@index([transcriptId])
+  @@index([keywords])
+}
+
+model TranscriptMetadata {
+  id              String    @id @default(uuid())
+  transcriptId    String    @unique
+  totalChunks     Int
+  avgChunkSize    Int       // Average words per chunk
+  topics          String[]  // Extracted main topics
+  speakers        String[]  // Speaker names (if available)
+  hasSummary      Boolean   @default(false)
+  lastChunkedAt   DateTime  @default(now())
+
+  transcript      Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptId])
+}
+
+/* ─────────────────────────────
+   Agentic Document Generation System
+   ───────────────────────────── */
+
+model AgentDocument {
+  id              String        @id @default(uuid())
+  title           String
+  documentType    String
+  preferences     Json          // User preferences from setup
+  status          AgentStatus   @default(INITIALIZING)
+  progress        Int           @default(0)  // 0-100
+  currentStage    String?       // Current action description
+
+  // Final output
+  content         String?       @db.Text
+  wordCount       Int?
+
+  // Agent execution tracking
+  conversationId  String?       // Claude API conversation ID
+  totalTokens     Int           @default(0)
+  totalCost       Float         @default(0)
+  toolCallCount   Int           @default(0)
+
+  // Timing
+  startedAt       DateTime      @default(now())
+  completedAt     DateTime?
+  generationTime  Int?          // Seconds
+
+  // Error handling
+  errorMessage    String?       @db.Text
+
+  // Variant tracking for A/B testing
+  variantId       String?       // baseline, hybrid, scalable
+  workflowPlan    Json?         // Agent's planned approach
+
+  // Metrics
+  transcriptsRead Int           @default(0)
+  transcriptsSearched Int       @default(0)
+  notesUtilization Float?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  transcripts     Transcript[]
+  sections        AgentSection[]
+  notes           AgentNote[]
+  toolCalls       AgentToolCall[]
+
+  @@index([status])
+  @@index([variantId])
+}
+
+model AgentSection {
+  id              String        @id @default(uuid())
+  documentId      String
+  title           String
+  description     String?       @db.Text
+  order           Int           // Position in document
+  content         String?       @db.Text
+  wordCount       Int?
+  revisionCount   Int           @default(0)
+  notesUsedIds    String[]      // IDs of notes used
+  writtenAt       DateTime?
+  revisedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  document        AgentDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, order])
+  @@index([documentId])
+}
+
+model AgentNote {
+  id                String        @id @default(uuid())
+  documentId        String
+  sectionTitle      String
+  content           String        @db.Text
+  noteType          String?       // quote, metric, insight, example, etc.
+  importance        NoteImportance @default(MEDIUM)
+  sourceTranscriptId String
+  usedInFinal       Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+
+  document          AgentDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  transcript        Transcript    @relation(fields: [sourceTranscriptId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, sectionTitle])
+  @@index([documentId])
+  @@index([importance])
+}
+
+model AgentToolCall {
+  id              String        @id @default(uuid())
+  documentId      String
+  toolName        String        // read_transcript, take_note, etc.
+  toolInput       Json          // Arguments passed to tool
+  toolOutput      Json?         // What tool returned
+  success         Boolean       @default(true)
+  errorMessage    String?
+  durationMs      Int?          // Execution time
+  calledAt        DateTime      @default(now())
+
+  document        AgentDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([toolName])
+}
